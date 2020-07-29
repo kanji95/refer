@@ -27,7 +27,7 @@ showMask   - show mask of the referred object given ref
 import sys
 import os.path as osp
 import json
-import cPickle as pickle
+import pickle as pickle
 import time
 import itertools
 import skimage.io as io
@@ -46,7 +46,7 @@ class REFER:
 		# provide data_root folder which contains refclef, refcoco, refcoco+ and refcocog
 		# also provide dataset name and splitBy information
 		# e.g., dataset = 'refcoco', splitBy = 'unc'
-		print 'loading dataset %s into memory...' % dataset
+		print('loading dataset %s into memory...' % dataset)
 		self.ROOT_DIR = osp.abspath(osp.dirname(__file__))
 		self.DATA_DIR = osp.join(data_root, dataset)
 		if dataset in ['refcoco', 'refcoco+', 'refcocog']:
@@ -54,7 +54,7 @@ class REFER:
 		elif dataset == 'refclef':
 			self.IMAGE_DIR = osp.join(data_root, 'images/saiapr_tc-12')
 		else:
-			print 'No refer dataset is called [%s]' % dataset
+			print('No refer dataset is called [%s]' % dataset)
 			sys.exit()
 
 		# load refs from data/dataset/refs(dataset).json
@@ -62,7 +62,7 @@ class REFER:
 		ref_file = osp.join(self.DATA_DIR, 'refs('+splitBy+').p')
 		self.data = {}
 		self.data['dataset'] = dataset
-		self.data['refs'] = pickle.load(open(ref_file, 'r'))
+		self.data['refs'] = pickle.load(open(ref_file, 'rb'))
 
 		# load annotations from data/dataset/instances.json
 		instances_file = osp.join(self.DATA_DIR, 'instances.json')
@@ -73,7 +73,7 @@ class REFER:
 
 		# create index
 		self.createIndex()
-		print 'DONE (t=%.2fs)' % (time.time()-tic)
+		print('DONE (t=%.2fs)' % (time.time()-tic))
 
 	def createIndex(self):
 		# create sets of mapping
@@ -89,7 +89,7 @@ class REFER:
 		# 10) catToRefs: 	{category_id: refs}
 		# 11) sentToRef: 	{sent_id: ref}
 		# 12) sentToTokens: {sent_id: tokens}
-		print 'creating index...'
+		print('creating index...')
 		# fetch info from instances
 		Anns, Imgs, Cats, imgToAnns = {}, {}, {}, {}
 		for ann in self.data['annotations']:
@@ -136,7 +136,7 @@ class REFER:
 		self.catToRefs = catToRefs
 		self.sentToRef = sentToRef
 		self.sentToTokens = sentToTokens
-		print 'index created.'
+		print('index created.')
 
 	def getRefIds(self, image_ids=[], cat_ids=[], ref_ids=[], split=''):
 		image_ids = image_ids if type(image_ids) == list else [image_ids]
@@ -164,7 +164,7 @@ class REFER:
 				elif split == 'train' or split == 'val':
 					refs = [ref for ref in refs if ref['split'] == split]
 				else:
-					print 'No such split [%s]' % split
+					print('No such split [%s]' % split)
 					sys.exit()
 		ref_ids = [ref['ref_id'] for ref in refs]
 		return ref_ids
@@ -195,11 +195,11 @@ class REFER:
 		if not len(ref_ids) == 0:
 			image_ids = list(set([self.Refs[ref_id]['image_id'] for ref_id in ref_ids]))
 		else:
-			image_ids = self.Imgs.keys()
+			image_ids = list(self.Imgs.keys())
 		return image_ids
 
 	def getCatIds(self):
-		return self.Cats.keys()
+		return list(self.Cats.keys())
 
 	def loadRefs(self, ref_ids=[]):
 		if type(ref_ids) == list:
@@ -210,7 +210,7 @@ class REFER:
 	def loadAnns(self, ann_ids=[]):
 		if type(ann_ids) == list:
 			return [self.Anns[ann_id] for ann_id in ann_ids]
-		elif type(ann_ids) == int or type(ann_ids) == unicode:
+		elif type(ann_ids) == int or type(ann_ids) == str:
 			return [self.Anns[ann_ids]]
 
 	def loadImgs(self, image_ids=[]):
@@ -238,7 +238,7 @@ class REFER:
 		ax.imshow(I)
 		# show refer expression
 		for sid, sent in enumerate(ref['sentences']):
-			print '%s. %s' % (sid+1, sent['sent'])
+			print('%s. %s' % (sid+1, sent['sent']))
 		# show segmentations
 		if seg_box == 'seg':
 			ann_id = ref['ann_id']
@@ -249,7 +249,7 @@ class REFER:
 			if type(ann['segmentation'][0]) == list:
 				# polygon used for refcoco*
 				for seg in ann['segmentation']:
-					poly = np.array(seg).reshape((len(seg)/2, 2))
+					poly = np.array(seg).reshape((len(seg)//2, 2))
 					polygons.append(Polygon(poly, True, alpha=0.4))
 					color.append(c)
 				p = PatchCollection(polygons, facecolors=color, edgecolors=(1,1,0,0), linewidths=3, alpha=1)
@@ -277,7 +277,7 @@ class REFER:
 		# return mask, area and mask-center
 		ann = self.refToAnn[ref['ref_id']]
 		image = self.Imgs[ref['image_id']]
-		if type(ann['segmentation'][0]) == list: # polygon
+		if type(ann['segmentation']) == list: # polygon
 			rle = mask.frPyObjects(ann['segmentation'], image['height'], image['width'])
 		else:
 			rle = ann['segmentation']
@@ -333,13 +333,13 @@ class REFER:
 if __name__ == '__main__':
 	refer = REFER(dataset='refcocog', splitBy='google')
 	ref_ids = refer.getRefIds()
-	print(len(ref_ids))
+	print((len(ref_ids)))
 
-	print len(refer.Imgs)
-	print len(refer.imgToRefs)
+	print(len(refer.Imgs))
+	print(len(refer.imgToRefs))
 
 	ref_ids = refer.getRefIds(split='train')
-	print 'There are %s training referred objects.' % len(ref_ids)
+	print('There are %s training referred objects.' % len(ref_ids))
 
 	for ref_id in ref_ids:
 		ref = refer.loadRefs(ref_id)[0]
@@ -347,7 +347,7 @@ if __name__ == '__main__':
 			continue
 
 		pprint(ref)
-		print 'The label is %s.' % refer.Cats[ref['category_id']]
+		print('The label is %s.' % refer.Cats[ref['category_id']])
 		plt.figure()
 		refer.showRef(ref, seg_box='box')
 		plt.show()
