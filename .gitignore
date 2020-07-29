@@ -12,3 +12,9 @@ data/refcocog
 
 # .pyc
 *.pyc
+
+# build
+build/
+
+# external
+external/_mask.cpython*
