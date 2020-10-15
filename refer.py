@@ -277,7 +277,7 @@ class REFER:
 		# return mask, area and mask-center
 		ann = self.refToAnn[ref['ref_id']]
 		image = self.Imgs[ref['image_id']]
-		if type(ann['segmentation']) == list: # polygon
+		if type(ann['segmentation'][0]) == list: # polygon
 			rle = mask.frPyObjects(ann['segmentation'], image['height'], image['width'])
 		else:
 			rle = ann['segmentation']
